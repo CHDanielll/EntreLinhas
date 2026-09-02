@@ -1,7 +1,74 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Home.css';
 
 export default function Home() {
+  const [featuredBooks, setFeaturedBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchFeaturedBooks = async () => {
+      setLoading(true);
+      try {
+        const url = 'https://openlibrary.org/search.json?q=bestseller&limit=15';
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Falha na requisição');
+
+        const data = await response.json();
+        const docs = data.docs || [];
+
+        if (isMounted) {
+          const formatted = docs
+            .filter((item) => item.title && (item.cover_i || item.cover_id))
+            .slice(0, 4)
+            .map((item, index) => {
+              const coverId = item.cover_i || item.cover_id;
+              const image = coverId
+                ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`
+                : `https://picsum.photos/seed/${encodeURIComponent(item.title)}/300/450`;
+
+              const authors = item.author_name
+                ? item.author_name.slice(0, 2).join(', ')
+                : 'Autor desconhecido';
+
+              const basePrice = 34.9 + (index % 4) * 6;
+              const discounts = ['-20%', '-15%', '-25%', '-10%'];
+              const discount = discounts[index % discounts.length];
+
+              return {
+                id: (item.key || String(index)).replace('/works/', ''),
+                title: item.title,
+                author: authors,
+                rating: (4.6 + (index % 4) * 0.1).toFixed(1),
+                price: basePrice,
+                oldPrice: basePrice * 1.25,
+                discount: discount,
+                image
+              };
+            });
+
+          setFeaturedBooks(formatted);
+        }
+      } catch {
+        if (isMounted) {
+          setFeaturedBooks([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchFeaturedBooks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <>
       <header className="header">
@@ -20,29 +87,29 @@ export default function Home() {
           </div>
 
           <div className="header-actions">
-            <a href="#favoritos" className="action-btn" title="Favoritos">
+            <Link to="/catalogo" className="action-btn" title="Favoritos">
               <i className="ph ph-heart"></i>
-            </a>
+            </Link>
             <Link to="/login" className="action-btn" title="Minha Conta">
               <i className="ph ph-user"></i>
             </Link>
-            <a href="#carrinho" className="action-btn cart-btn" title="Carrinho">
+            <Link to="/carrinho" className="action-btn cart-btn" title="Carrinho">
               <i className="ph ph-shopping-bag"></i>
               <span className="badge-count">1</span>
-            </a>
+            </Link>
           </div>
         </div>
 
         <nav className="nav-bar">
           <div className="container nav-container">
             <ul className="nav-list">
-              <li><a href="#ficcao" className="nav-link">Ficção</a></li>
-              <li><a href="#romance" className="nav-link">Romance</a></li>
-              <li><a href="#fantasia" className="nav-link">Fantasia</a></li>
-              <li><a href="#suspense" className="nav-link">Suspense</a></li>
-              <li><a href="#terror" className="nav-link">Terror</a></li>
-              <li><a href="#desenvolvimento" className="nav-link">Desenvolvimento</a></li>
-              <li><a href="#biografias" className="nav-link">Biografias</a></li>
+              <li><Link to="/catalogo?categoria=ficcao" className="nav-link">Ficção</Link></li>
+              <li><Link to="/catalogo?categoria=romance" className="nav-link">Romance</Link></li>
+              <li><Link to="/catalogo?categoria=fantasia" className="nav-link">Fantasia</Link></li>
+              <li><Link to="/catalogo?categoria=suspense" className="nav-link">Suspense</Link></li>
+              <li><Link to="/catalogo?categoria=terror" className="nav-link">Terror</Link></li>
+              <li><Link to="/catalogo?categoria=autoajuda" className="nav-link">Desenvolvimento</Link></li>
+              <li><Link to="/catalogo?categoria=biografias" className="nav-link">Biografias</Link></li>
               <li><Link to="/catalogo" className="nav-link nav-link-all">Ver todas &rarr;</Link></li>
             </ul>
           </div>
@@ -74,97 +141,64 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ================= LIVROS EM DESTAQUE DINÂMICOS ================= */}
       <section className="section container" id="destaques">
         <div className="section-header">
           <h2 className="section-title">Livros em destaque</h2>
           <Link to="/catalogo" className="section-link">Ver catálogo completo &rarr;</Link>
         </div>
 
-        <div className="book-grid">
-          <article className="book-card">
-            <div className="card-thumb">
-              <span className="badge badge-discount">-20%</span>
-              <button className="wishlist-btn" title="Favoritar"><i className="ph ph-heart"></i></button>
-              <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=300" alt="A Biblioteca da Meia-Noite" />
-            </div>
-            <div className="card-info">
-              <h3 className="book-title">A Biblioteca da Meia-Noite</h3>
-              <p className="book-author">Matt Haig</p>
-              <div className="rating">
-                <i className="ph-fill ph-star"></i>
-                <span className="rating-value">4.8</span>
+        {loading ? (
+          <div className="book-grid">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-thumb"></div>
+                <div className="skeleton-line" style={{ width: '80%' }}></div>
+                <div className="skeleton-line" style={{ width: '50%' }}></div>
+                <div className="skeleton-line" style={{ width: '40%', height: '24px' }}></div>
               </div>
-              <div className="price-box">
-                <span className="price-current">R$ 44,90</span>
-                <span className="price-old">R$ 56,00</span>
-              </div>
-              <button className="btn btn-primary btn-block">Adicionar</button>
-            </div>
-          </article>
-
-          <article className="book-card">
-            <div className="card-thumb">
-              <span className="badge badge-discount">-15%</span>
-              <button className="wishlist-btn" title="Favoritar"><i className="ph ph-heart"></i></button>
-              <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=300" alt="Hábitos Atômicos" />
-            </div>
-            <div className="card-info">
-              <h3 className="book-title">Hábitos Atômicos</h3>
-              <p className="book-author">James Clear</p>
-              <div className="rating">
-                <i className="ph-fill ph-star"></i>
-                <span className="rating-value">4.9</span>
-              </div>
-              <div className="price-box">
-                <span className="price-current">R$ 38,90</span>
-                <span className="price-old">R$ 45,90</span>
-              </div>
-              <button className="btn btn-primary btn-block">Adicionar</button>
-            </div>
-          </article>
-
-          <article className="book-card">
-            <div className="card-thumb">
-              <span className="badge badge-discount">-25%</span>
-              <button className="wishlist-btn" title="Favoritar"><i className="ph ph-heart"></i></button>
-              <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=300" alt="É Assim que Acaba" />
-            </div>
-            <div className="card-info">
-              <h3 className="book-title">É Assim que Acaba</h3>
-              <p className="book-author">Colleen Hoover</p>
-              <div className="rating">
-                <i className="ph-fill ph-star"></i>
-                <span className="rating-value">4.7</span>
-              </div>
-              <div className="price-box">
-                <span className="price-current">R$ 39,00</span>
-                <span className="price-old">R$ 52,00</span>
-              </div>
-              <button className="btn btn-primary btn-block">Adicionar</button>
-            </div>
-          </article>
-
-          <article className="book-card">
-            <div className="card-thumb">
-              <span className="badge badge-discount">-10%</span>
-              <button className="wishlist-btn" title="Favoritar"><i className="ph ph-heart"></i></button>
-              <img src="https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&q=80&w=300" alt="Corte de Névoa e Fúria" />
-            </div>
-            <div className="card-info">
-              <h3 className="book-title">Corte de Névoa e Fúria</h3>
-              <p className="book-author">Sarah J. Maas</p>
-              <div className="rating">
-                <i className="ph-fill ph-star"></i>
-                <span className="rating-value">4.9</span>
-              </div>
-              <div className="price-box">
-                <span className="price-current">R$ 49,90</span>
-                <span className="price-old">R$ 55,90</span>
-              </div>
-              <button className="btn btn-primary btn-block">Adicionar</button>
-            </div>
-          </article>
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="book-grid">
+            {featuredBooks.map((book) => (
+              <article key={book.id} className="book-card">
+                <div className="card-thumb">
+                  {book.discount && <span className="badge badge-discount">{book.discount}</span>}
+                  <button className="wishlist-btn" title="Favoritar">
+                    <i className="ph ph-heart"></i>
+                  </button>
+                  <Link to={`/livro/${book.id}`}>
+                    <img src={book.image} alt={book.title} loading="lazy" />
+                  </Link>
+                </div>
+                <div className="card-info">
+                  <Link to={`/livro/${book.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <h3 className="book-title" title={book.title}>{book.title}</h3>
+                  </Link>
+                  <p className="book-author">{book.author}</p>
+                  <div className="rating">
+                    <i className="ph-fill ph-star"></i>
+                    <span className="rating-value">{book.rating}</span>
+                  </div>
+                  <div className="price-box">
+                    <span className="price-current">
+                      R$ {Number(book.price).toFixed(2).replace('.', ',')}
+                    </span>
+                    {book.oldPrice && (
+                      <span className="price-old">
+                        R$ {Number(book.oldPrice).toFixed(2).replace('.', ',')}
+                      </span>
+                    )}
+                  </div>
+                  <Link to={`/livro/${book.id}`} className="btn btn-primary btn-block">
+                    Ver detalhes
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
 
         <div style={{ textAlign: 'center', marginTop: '32px' }}>
           <Link to="/catalogo" className="btn btn-primary" style={{ padding: '12px 32px' }}>
@@ -180,22 +214,12 @@ export default function Home() {
         </div>
 
         <div className="ranking-grid">
-          <div className="ranking-card">
-            <span className="rank-badge">#1</span>
-            <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=200" alt="Livro 1" />
-          </div>
-          <div className="ranking-card">
-            <span className="rank-badge">#2</span>
-            <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=200" alt="Livro 2" />
-          </div>
-          <div className="ranking-card">
-            <span className="rank-badge">#3</span>
-            <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200" alt="Livro 3" />
-          </div>
-          <div className="ranking-card">
-            <span className="rank-badge">#4</span>
-            <img src="https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&q=80&w=200" alt="Livro 4" />
-          </div>
+          {featuredBooks.map((book, index) => (
+            <Link to={`/livro/${book.id}`} key={book.id} className="ranking-card">
+              <span className="rank-badge">#{index + 1}</span>
+              <img src={book.image} alt={book.title} />
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -205,30 +229,30 @@ export default function Home() {
         </div>
 
         <div className="categories-grid">
-          <div className="category-pill">
+          <Link to="/catalogo?categoria=romance" className="category-pill">
             <i className="ph ph-heart-straight"></i>
             <span>Romance</span>
-          </div>
-          <div className="category-pill">
+          </Link>
+          <Link to="/catalogo?categoria=fantasia" className="category-pill">
             <i className="ph ph-sparkle"></i>
             <span>Fantasia</span>
-          </div>
-          <div className="category-pill">
+          </Link>
+          <Link to="/catalogo?categoria=ficcao" className="category-pill">
             <i className="ph ph-planet"></i>
             <span>Ficção</span>
-          </div>
-          <div className="category-pill">
+          </Link>
+          <Link to="/catalogo?categoria=suspense" className="category-pill">
             <i className="ph ph-detective"></i>
             <span>Suspense</span>
-          </div>
-          <div className="category-pill">
+          </Link>
+          <Link to="/catalogo?categoria=autoajuda" className="category-pill">
             <i className="ph ph-brain"></i>
             <span>Autoajuda</span>
-          </div>
-          <div className="category-pill">
+          </Link>
+          <Link to="/catalogo?categoria=ficcao" className="category-pill">
             <i className="ph ph-baby"></i>
             <span>Infantil</span>
-          </div>
+          </Link>
         </div>
       </section>
 

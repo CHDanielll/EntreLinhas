@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import './Catalago.css';
 
 const CATEGORIES = [
@@ -10,14 +10,19 @@ const CATEGORIES = [
   { label: 'Fantasia', value: 'fantasia' },
   { label: 'Suspense', value: 'suspense' },
   { label: 'Terror', value: 'terror' },
-  { label: 'Desenvolvimento', value: 'autoajuda' }
+  { label: 'Desenvolvimento', value: 'autoajuda' },
+  { label: 'Biografias', value: 'biografias' }
 ];
 
 export default function Catalago() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Valores derivados diretamente da URL
+  const selectedCategory = searchParams.get('categoria') || 'livros';
+  const query = searchParams.get('busca') || selectedCategory;
+
   const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [query, setQuery] = useState('bestseller');
-  const [selectedCategory, setSelectedCategory] = useState('livros');
   const [sortBy, setSortBy] = useState('relevance');
   const [loading, setLoading] = useState(false);
 
@@ -28,7 +33,7 @@ export default function Catalago() {
       setLoading(true);
 
       try {
-        const searchTermParam = query.trim() || selectedCategory || 'livros';
+        const searchTermParam = query.trim() || 'livros';
         const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(searchTermParam)}&limit=60`;
 
         const response = await fetch(url);
@@ -50,7 +55,7 @@ export default function Catalago() {
                 ? item.author_name.slice(0, 2).join(', ')
                 : 'Autor desconhecido';
 
-              const basePrice = 29.90 + (index % 7) * 5.5;
+              const basePrice = 29.9 + (index % 7) * 5.5;
               const hasDiscount = index % 3 === 0;
 
               return {
@@ -86,27 +91,28 @@ export default function Catalago() {
     return () => {
       isMounted = false;
     };
-  }, [query, selectedCategory, sortBy]);
+  }, [query, sortBy]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      setSelectedCategory('');
-      setQuery(searchTerm);
+      setSearchParams({ busca: searchTerm.trim() });
     }
   };
 
   const handleCategoryChange = (val) => {
-    setSelectedCategory(val);
     setSearchTerm('');
-    setQuery(val);
+    if (val === 'livros') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ categoria: val });
+    }
   };
 
   const handleClearFilters = () => {
     setSearchTerm('');
-    setQuery('bestseller');
-    setSelectedCategory('livros');
     setSortBy('relevance');
+    setSearchParams({});
   };
 
   return (
@@ -133,7 +139,7 @@ export default function Catalago() {
               className="clear-search-btn"
               onClick={() => {
                 setSearchTerm('');
-                setQuery('bestseller');
+                setSearchParams({});
               }}
             >
               <i className="ph ph-x"></i>
@@ -186,7 +192,10 @@ export default function Catalago() {
         <main className="catalog-content">
           <div className="catalog-results-count">
             <span>
-              Exibindo <strong>{books.length}</strong> livros
+              Exibindo <strong>{books.length}</strong> livros em{' '}
+              <strong>
+                {CATEGORIES.find((c) => c.value === selectedCategory)?.label || 'Todos'}
+              </strong>
             </span>
           </div>
 
@@ -203,36 +212,45 @@ export default function Catalago() {
             </div>
           ) : books.length > 0 ? (
             <div className="book-grid catalog-grid">
-              {books.map((book) => (
-                <article key={book.id} className="book-card">
-                  <div className="card-thumb">
-                    {book.discount && <span className="badge badge-discount">{book.discount}</span>}
-                    <button className="wishlist-btn" title="Favoritar">
-                      <i className="ph ph-heart"></i>
-                    </button>
-                    <img src={book.image} alt={book.title} loading="lazy" />
-                  </div>
-                  <div className="card-info">
-                    <h3 className="book-title" title={book.title}>{book.title}</h3>
-                    <p className="book-author">{book.author}</p>
-                    <div className="rating">
-                      <i className="ph-fill ph-star"></i>
-                      <span className="rating-value">{book.rating}</span>
+              {books.map((book) => {
+                const bookRouteId = book.id.replace('/works/', '');
+                return (
+                  <article key={book.id} className="book-card">
+                    <div className="card-thumb">
+                      {book.discount && <span className="badge badge-discount">{book.discount}</span>}
+                      <button className="wishlist-btn" title="Favoritar">
+                        <i className="ph ph-heart"></i>
+                      </button>
+                      <Link to={`/livro/${bookRouteId}`}>
+                        <img src={book.image} alt={book.title} loading="lazy" />
+                      </Link>
                     </div>
-                    <div className="price-box">
-                      <span className="price-current">
-                        R$ {Number(book.price).toFixed(2).replace('.', ',')}
-                      </span>
-                      {book.oldPrice && (
-                        <span className="price-old">
-                          R$ {Number(book.oldPrice).toFixed(2).replace('.', ',')}
+                    <div className="card-info">
+                      <Link to={`/livro/${bookRouteId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <h3 className="book-title" title={book.title}>{book.title}</h3>
+                      </Link>
+                      <p className="book-author">{book.author}</p>
+                      <div className="rating">
+                        <i className="ph-fill ph-star"></i>
+                        <span className="rating-value">{book.rating}</span>
+                      </div>
+                      <div className="price-box">
+                        <span className="price-current">
+                          R$ {Number(book.price).toFixed(2).replace('.', ',')}
                         </span>
-                      )}
+                        {book.oldPrice && (
+                          <span className="price-old">
+                            R$ {Number(book.oldPrice).toFixed(2).replace('.', ',')}
+                          </span>
+                        )}
+                      </div>
+                      <Link to={`/livro/${bookRouteId}`} className="btn btn-primary btn-block">
+                        Ver detalhes
+                      </Link>
                     </div>
-                    <button className="btn btn-primary btn-block">Adicionar</button>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           ) : (
             <div className="empty-state">
