@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../Context/AuthContext';
+import { useCart } from '../Context/CartContext';
+import { useFavorites } from '../Context/FavoritesContext';
 import './Home.css';
 
 export default function Home() {
+  const { totalItems } = useCart();
+  const { user, isAuthenticated, logout } = useAuth();
+  const { totalFavorites, toggleFavorite, isFavorite } = useFavorites();
   const [featuredBooks, setFeaturedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -73,7 +79,7 @@ export default function Home() {
     <>
       <header className="header">
         <div className="container header-container">
-          <Link to="/" className="brand-logo">
+          <Link to="/home" className="brand-logo">
             <i className="ph ph-book-open-text"></i>
             <div className="logo-text">
               <span className="logo-title">EntreLinhas</span>
@@ -87,15 +93,41 @@ export default function Home() {
           </div>
 
           <div className="header-actions">
-            <Link to="/catalogo" className="action-btn" title="Favoritos">
-              <i className="ph ph-heart"></i>
+            {/* Ícone de Favoritos com contador dinâmico e link para /favoritos */}
+            <Link
+              to="/favoritos"
+              className="action-btn"
+              title="Meus Favoritos"
+              style={{ position: 'relative' }}
+            >
+              <i className="ph ph-heart" style={{ fontSize: '22px' }}></i>
+              {totalFavorites > 0 && <span className="badge-count">{totalFavorites}</span>}
             </Link>
-            <Link to="/login" className="action-btn" title="Minha Conta">
-              <i className="ph ph-user"></i>
-            </Link>
+
+            {isAuthenticated ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--brand-primary, #7c3aed)' }}>
+                  Olá, {user?.name || 'Leitor'}
+                </span>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="action-btn"
+                  title="Sair da conta"
+                  style={{ border: 'none', background: 'none', cursor: 'pointer' }}
+                >
+                  <i className="ph ph-sign-out"></i>
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" className="action-btn" title="Fazer Login">
+                <i className="ph ph-user"></i>
+              </Link>
+            )}
+
             <Link to="/carrinho" className="action-btn cart-btn" title="Carrinho">
-              <i className="ph ph-shopping-bag"></i>
-              <span className="badge-count">1</span>
+              <i className="ph ph-shopping-cart" style={{ fontSize: '24px' }}></i>
+              {totalItems > 0 && <span className="badge-count">{totalItems}</span>}
             </Link>
           </div>
         </div>
@@ -161,42 +193,51 @@ export default function Home() {
           </div>
         ) : (
           <div className="book-grid">
-            {featuredBooks.map((book) => (
-              <article key={book.id} className="book-card">
-                <div className="card-thumb">
-                  {book.discount && <span className="badge badge-discount">{book.discount}</span>}
-                  <button className="wishlist-btn" title="Favoritar">
-                    <i className="ph ph-heart"></i>
-                  </button>
-                  <Link to={`/livro/${book.id}`}>
-                    <img src={book.image} alt={book.title} loading="lazy" />
-                  </Link>
-                </div>
-                <div className="card-info">
-                  <Link to={`/livro/${book.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <h3 className="book-title" title={book.title}>{book.title}</h3>
-                  </Link>
-                  <p className="book-author">{book.author}</p>
-                  <div className="rating">
-                    <i className="ph-fill ph-star"></i>
-                    <span className="rating-value">{book.rating}</span>
+            {featuredBooks.map((book) => {
+              const favorite = isFavorite(book.id);
+              return (
+                <article key={book.id} className="book-card">
+                  <div className="card-thumb">
+                    {book.discount && <span className="badge badge-discount">{book.discount}</span>}
+                    <button
+                      type="button"
+                      className="wishlist-btn"
+                      title={favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                      onClick={() => toggleFavorite(book)}
+                      style={{ color: favorite ? '#ef4444' : 'inherit' }}
+                    >
+                      <i className={favorite ? 'ph-fill ph-heart' : 'ph ph-heart'}></i>
+                    </button>
+                    <Link to={`/livro/${book.id}`}>
+                      <img src={book.image} alt={book.title} loading="lazy" />
+                    </Link>
                   </div>
-                  <div className="price-box">
-                    <span className="price-current">
-                      R$ {Number(book.price).toFixed(2).replace('.', ',')}
-                    </span>
-                    {book.oldPrice && (
-                      <span className="price-old">
-                        R$ {Number(book.oldPrice).toFixed(2).replace('.', ',')}
+                  <div className="card-info">
+                    <Link to={`/livro/${book.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <h3 className="book-title" title={book.title}>{book.title}</h3>
+                    </Link>
+                    <p className="book-author">{book.author}</p>
+                    <div className="rating">
+                      <i className="ph-fill ph-star"></i>
+                      <span className="rating-value">{book.rating}</span>
+                    </div>
+                    <div className="price-box">
+                      <span className="price-current">
+                        R$ {Number(book.price).toFixed(2).replace('.', ',')}
                       </span>
-                    )}
+                      {book.oldPrice && (
+                        <span className="price-old">
+                          R$ {Number(book.oldPrice).toFixed(2).replace('.', ',')}
+                        </span>
+                      )}
+                    </div>
+                    <Link to={`/livro/${book.id}`} className="btn btn-primary btn-block">
+                      Ver detalhes
+                    </Link>
                   </div>
-                  <Link to={`/livro/${book.id}`} className="btn btn-primary btn-block">
-                    Ver detalhes
-                  </Link>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
 

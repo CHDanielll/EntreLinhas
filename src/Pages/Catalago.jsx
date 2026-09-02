@@ -17,7 +17,6 @@ const CATEGORIES = [
 export default function Catalago() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Valores derivados diretamente da URL
   const selectedCategory = searchParams.get('categoria') || 'livros';
   const query = searchParams.get('busca') || selectedCategory;
 
@@ -118,7 +117,8 @@ export default function Catalago() {
   return (
     <div className="catalog-page container">
       <div className="catalog-back-wrapper">
-        <Link to="/" className="back-btn">
+        {/* Link atualizado para voltar para /home */}
+        <Link to="/home" className="back-btn">
           <i className="ph ph-arrow-left"></i>
           <span>Voltar para o início</span>
         </Link>
