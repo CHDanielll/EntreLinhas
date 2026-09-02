@@ -16,36 +16,31 @@ export function CartProvider({ children }) {
     try {
       localStorage.setItem('@EntreLinhas:cart', JSON.stringify(cart));
     } catch (err) {
-      console.error('Erro ao salvar carrinho no localStorage', err);
+      console.error('Erro ao salvar carrinho:', err);
     }
   }, [cart]);
 
   const addToCart = (book, quantity = 1) => {
     setCart((prev) => {
-      const existingIndex = prev.findIndex((item) => item.id === book.id);
-      if (existingIndex > -1) {
-        const updated = [...prev];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          quantity: updated[existingIndex].quantity + quantity
-        };
-        return updated;
+      const exists = prev.find((item) => item.id === book.id);
+      if (exists) {
+        return prev.map((item) =>
+          item.id === book.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
       }
       return [...prev, { ...book, quantity }];
     });
   };
 
-  const updateQuantity = (id, delta) => {
+  const updateQuantity = (id, quantity) => {
+    if (quantity <= 0) {
+      removeFromCart(id);
+      return;
+    }
     setCart((prev) =>
-      prev
-        .map((item) => {
-          if (item.id === id) {
-            const newQty = item.quantity + delta;
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
-          }
-          return item;
-        })
-        .filter(Boolean)
+      prev.map((item) => (item.id === id ? { ...item, quantity } : item))
     );
   };
 
@@ -53,7 +48,9 @@ export function CartProvider({ children }) {
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const clearCart = () => setCart([]);
+  const clearCart = () => {
+    setCart([]);
+  };
 
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -79,7 +76,7 @@ export function CartProvider({ children }) {
 export function useCart() {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCart deve ser usado dentro de um CartProvider');
+    throw new Error('useCart deve ser usado dentro de CartProvider');
   }
   return context;
 }
