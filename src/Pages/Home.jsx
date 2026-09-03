@@ -93,7 +93,7 @@ export default function Home() {
           </div>
 
           <div className="header-actions">
-            {/* Ícone de Favoritos com contador dinâmico e link para /favoritos */}
+            
             <Link
               to="/favoritos"
               className="action-btn"
@@ -173,7 +173,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= LIVROS EM DESTAQUE DINÂMICOS ================= */}
+
       <section className="section container" id="destaques">
         <div className="section-header">
           <h2 className="section-title">Livros em destaque</h2>

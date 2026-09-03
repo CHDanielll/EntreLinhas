@@ -9,23 +9,23 @@ export default function Carrinho() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  // Estados do Frete
+
   const [cep, setCep] = useState('');
   const [shippingOption, setShippingOption] = useState(null);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState('');
 
-  // Estados do Cupom
+ 
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
 
-  // Estados do Checkout Simulado
+  
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('pix');
   const [orderCompleted, setOrderCompleted] = useState(null);
 
-  // Validação e Cálculo de Frete
+  // Frete
   const handleCalculateShipping = (e) => {
     e.preventDefault();
     setShippingError('');
@@ -39,7 +39,7 @@ export default function Carrinho() {
     setShippingLoading(true);
     setTimeout(() => {
       setShippingLoading(false);
-      // Se a compra for >= 150, frete padrão grátis
+      // Compra maior q 150 = frete grátis, caso contrário frete de 15,90
       const isFree = subtotal >= 150;
       setShippingOption({
         type: isFree ? 'Econômica (Frete Grátis)' : 'Padrão EntreLinhas',
@@ -49,7 +49,7 @@ export default function Carrinho() {
     }, 600);
   };
 
-  // Aplicação de Cupons
+  // Cupons
   const handleApplyCoupon = (e) => {
     e.preventDefault();
     setCouponError('');
@@ -69,7 +69,7 @@ export default function Carrinho() {
     }
   };
 
-  // Cálculos Financeiros
+  
   const discountValue = appliedCoupon?.discountRate ? subtotal * appliedCoupon.discountRate : 0;
   let finalShippingPrice = shippingOption ? shippingOption.price : 0;
   if (appliedCoupon?.freeShipping) {
@@ -118,7 +118,7 @@ export default function Carrinho() {
           </Link>
         </div>
       ) : orderCompleted ? (
-        /* ================= TELA DE PEDIDO CONCLUÍDO ================= */
+        
         <div className="empty-state" style={{ maxWidth: '580px', margin: '0 auto', textAlign: 'center' }}>
           <i className="ph ph-check-circle" style={{ fontSize: '64px', color: '#16a34a', marginBottom: '16px' }}></i>
           <h2>Compra realizada com sucesso!</h2>
@@ -151,7 +151,7 @@ export default function Carrinho() {
           </Link>
         </div>
       ) : (
-        /* ================= GRID DO CARRINHO ================= */
+        
         <div className="cart-grid-layout">
           {/* Lista de Itens */}
           <div className="cart-items-list">
@@ -199,11 +199,11 @@ export default function Carrinho() {
             ))}
           </div>
 
-          {/* Resumo do Pedido + Frete + Cupom */}
+          {/* Fim do pedido com todos valores*/}
           <aside className="cart-summary-sidebar">
             <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Resumo do Pedido</h3>
 
-            {/* Cálculo de Frete */}
+            
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '13px', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
                 Calcular Frete:
@@ -243,7 +243,7 @@ export default function Carrinho() {
               )}
             </div>
 
-            {/* Campo de Cupom */}
+            
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '13px', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
                 Cupom de Desconto:
@@ -280,7 +280,7 @@ export default function Carrinho() {
 
             <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '16px 0' }} />
 
-            {/* Valores Finais */}
+           
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px' }}>
               <span>Subtotal:</span>
               <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
@@ -332,7 +332,7 @@ export default function Carrinho() {
         </div>
       )}
 
-      {/* ================= MODAL DE CHECKOUT SIMULADO ================= */}
+      
       {isCheckoutOpen && (
         <div
           style={{

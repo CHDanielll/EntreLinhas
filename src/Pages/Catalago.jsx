@@ -117,7 +117,7 @@ export default function Catalago() {
   return (
     <div className="catalog-page container">
       <div className="catalog-back-wrapper">
-        {/* Link atualizado para voltar para /home */}
+       
         <Link to="/home" className="back-btn">
           <i className="ph ph-arrow-left"></i>
           <span>Voltar para o início</span>
