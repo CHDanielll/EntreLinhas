@@ -1,5 +1,5 @@
 .cart-page {
-    padding-top: 32px;
+    <<<<<<< HEAD padding-top: 32px;
     padding-bottom: 64px;
 }
 
@@ -123,4 +123,131 @@
     .cart-grid-layout {
         grid-template-columns: 1fr;
     }
+
+    =======padding-top: 32px;
+    padding-bottom: 64px;
+}
+
+.cart-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 32px;
+    align-items: start;
+}
+
+.cart-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cart-item-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.cart-item-thumb {
+    width: 70px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.cart-item-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cart-item-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: #1e293b;
+    text-decoration: none;
+}
+
+.cart-item-author {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.cart-item-price {
+    font-weight: 700;
+    color: var(--brand-primary, #7c3aed);
+    margin-top: 4px;
+}
+
+.cart-qty-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.quantity-selector {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background-color: #ffffff;
+}
+
+.qty-btn {
+    background: none;
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qty-btn:hover {
+    background-color: #f1f5f9;
+}
+
+.qty-value {
+    padding: 0 8px;
+    font-weight: 600;
+    font-size: 14px;
+    min-width: 24px;
+    text-align: center;
+}
+
+.cart-remove-btn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cart-remove-btn:hover {
+    text-decoration: underline;
+}
+
+.cart-summary-sidebar {
+    background: #ffffff;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 900px) {
+    .cart-grid-layout {
+        grid-template-columns: 1fr;
+    }
+
+    >>>>>>>cddc9d8 (feat: arrumando o css do catalago e carrinho)
 }
