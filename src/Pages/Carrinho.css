@@ -1,5 +1,5 @@
 .cart-page {
-    <<<<<<< HEAD padding-top: 32px;
+    padding-top: 32px;
     padding-bottom: 64px;
 }
 
@@ -124,8 +124,6 @@
         grid-template-columns: 1fr;
     }
 
-    =======padding-top: 32px;
-    padding-bottom: 64px;
 }
 
 .cart-grid-layout {
@@ -249,5 +247,5 @@
         grid-template-columns: 1fr;
     }
 
-    >>>>>>>cddc9d8 (feat: arrumando o css do catalago e carrinho)
+
 }
